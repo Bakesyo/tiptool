@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SOL Buddy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-Fo3rlrZj/k7ujTTXJN0z4PYYT7F7imErVL3Xo+8KcMufb9D6EAGJ3LncQX6d/wh9XixG4AONb50o5v8u3VbZQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- PapaParse for CSV Parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js" integrity="sha512-3xgMJ9iZp8nOqk6dfRzH5qk8WSPhGjDj+ZJKV+5k+Ikz+kGmgGf3CwzFGpq0Ej/FEcI6pv7nX1XvXBxHI3vYBw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- CSS Styles -->
+    <style>
+        /* CSS Variables for Dark and Light Themes */
+        :root {
+            /* Dark Theme Variables */
+            --primary-color: #ffffff;
+            --secondary-color: #00ffff;
+            --accent-color: #ff00ff;
+            --error-color: #ff4d4d;
+            --background-gradient: linear-gradient(270deg, #0f2027, #203a43, #2c5364);
+            --font-primary: 'Roboto', sans-serif;
+            --font-secondary: 'Merriweather', serif;
+            --transition-speed: 0.3s;
+            --sidebar-width: 300px;
+            --sidebar-bg: rgba(255, 255, 255, 0.1);
+            --sidebar-border: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Light Theme Variables */
+        .light-theme {
+            --primary-color: #1e1e1e;
+            --secondary-color: #007acc;
+            --accent-color: #e91e63;
+            --error-color: #d32f2f;
+            --background-gradient: linear-gradient(270deg, #f0f0f0, #e0e0e0, #d0d0d0);
+            --font-primary: 'Roboto', sans-serif;
+            --font-secondary: 'Merriweather', serif;
+            --transition-speed: 0.3s;
+            --sidebar-width: 300px;
+            --sidebar-bg: rgba(0, 0, 0, 0.05);
+            --sidebar-border: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Global Styles */
+        body {
+            font-family: var(--font-primary);
+            background: var(--background-gradient);
+            background-size: 600% 600%;
+            animation: gradientAnimation 20s ease infinite;
+            margin: 0;
+            padding: 0;
+            color: #ffffff;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .light-theme body {
+            color: #000000;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            backdrop-filter: blur(10px);
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        .light-theme .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #000000;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Toggle Switch Styles */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .theme-toggle input[type="checkbox"] {
+            height: 0;
+            width: 0;
+            visibility: hidden;
+        }
+
+        .theme-toggle label {
+            cursor: pointer;
+            text-indent: -9999px;
+            width: 50px;
+            height: 25px;
+            background: grey;
+            display: block;
+            border-radius: 100px;
+            position: relative;
+            transition: background-color 0.3s;
+        }
+
+        .theme-toggle label:after {
+            content: '';
+            position: absolute;
+            top: 2.5px;
+            left: 2.5px;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 90px;
+            transition: 0.3s;
+        }
+
+        .theme-toggle input:checked + label {
+            background: #007acc;
+        }
+
+        .theme-toggle input:checked + label:after {
+            left: calc(100% - 2.5px);
+            transform: translateX(-100%);
+        }
+
+        .theme-toggle label:active:after {
+            width: 28px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        h1, h2, h3 {
+            font-family: var(--font-secondary);
+            color: var(--secondary-color);
+            text-align: center;
+            margin-bottom: 20px;
+            transition: color 0.3s;
+        }
+
+        .light-theme h1, .light-theme h2, .light-theme h3 {
+            color: var(--secondary-color);
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            font-size: 2em;
+            margin-bottom: 25px;
+        }
+
+        h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-bg);
+            border: 1px solid var(--sidebar-border);
+            border-radius: 8px;
+            padding: 20px;
+            box-sizing: border-box;
+            display: none; /* Hidden by default */
+            flex-shrink: 0;
+            color: inherit;
+            overflow-y: auto;
+            max-height: 80vh;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .sidebar.active {
+            display: block;
+        }
+
+        .sidebar h3 {
+            margin-top: 0;
+            color: var(--secondary-color);
+            transition: color 0.3s;
+        }
+
+        .sidebar p {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        .sidebar a {
+            color: var(--accent-color);
+            text-decoration: none;
+            transition: color var(--transition-speed);
+        }
+
+        .sidebar a:hover {
+            color: var(--secondary-color);
+            text-decoration: underline;
+        }
+
+        /* Form Styles */
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: inherit;
+            transition: color 0.3s;
+        }
+
+        .light-theme label {
+            color: #000000;
+        }
+
+        select, input[type="date"], textarea {
+            padding: 12px 15px;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color var(--transition-speed), background-color 0.3s, color 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #ffffff;
+            appearance: none; /* Remove default arrow for custom styling */
+            background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="%23ffffff" d="M7 10l5 5 5-5z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 12px;
+        }
+
+        .light-theme select, 
+        .light-theme input[type="date"], 
+        .light-theme textarea {
+            background-color: #f0f0f0;
+            color: #000000;
+        }
+
+        select:focus, input[type="date"]:focus, textarea:focus {
+            border-color: var(--secondary-color);
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+
+        .light-theme select:focus, 
+        .light-theme input[type="date"]:focus, 
+        .light-theme textarea:focus {
+            background-color: #e0e0e0;
+        }
+
+        textarea {
+            resize: vertical;
+            height: 120px;
+        }
+
+        button {
+            padding: 14px 20px;
+            background-color: var(--secondary-color);
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color var(--transition-speed), transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button:hover {
+            background-color: var(--accent-color);
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background-color: #a0a0a0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        button i {
+            margin-right: 8px;
+        }
+
+        /* Loading Indicator */
+        #loading {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 1.2em;
+            color: var(--secondary-color);
+            display: none;
+        }
+
+        /* Result and Error Styles */
+        #result, #errorMessage {
+            margin-top: 40px;
+            padding: 25px;
+            border-radius: 6px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        #result {
+            background-color: rgba(0, 255, 255, 0.2);
+            color: var(--accent-color);
+            border-left: 6px solid var(--accent-color);
+        }
+
+        #errorMessage {
+            background-color: rgba(255, 0, 0, 0.2);
+            color: var(--error-color);
+            border-left: 6px solid var(--error-color);
+        }
+
+        /* Notes Section */
+        .notes-section {
+            margin-top: 40px;
+        }
+
+        .notes-section textarea {
+            resize: vertical;
+            height: 120px;
+            font-family: var(--font-primary);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #ffffff;
+            border: 1px solid #bdc3c7;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        .light-theme .notes-section textarea {
+            background-color: #f9f9f9;
+            color: #000000;
+            border: 1px solid #ccc;
+        }
+
+        /* Legal References */
+        .legal-references {
+            margin-top: 40px;
+        }
+
+        .legal-references ul {
+            list-style-type: disc;
+            padding-left: 20px;
+        }
+
+        .legal-references a {
+            color: var(--accent-color);
+            text-decoration: none;
+            transition: color var(--transition-speed);
+        }
+
+        .legal-references a:hover {
+            color: var(--secondary-color);
+            text-decoration: underline;
+        }
+
+        /* Export and Print Buttons */
+        .export-buttons {
+            margin-top: 30px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .export-buttons button {
+            flex: 1 1 45%;
+            background-color: #27ae60;
+        }
+
+        .export-buttons button.print-btn {
+            background-color: var(--accent-color);
+        }
+
+        .export-buttons button:hover {
+            background-color: #1e8449;
+        }
+
+        .export-buttons button.print-btn:hover {
+            background-color: #138d75;
+        }
+
+        /* Import Section */
+        .import-section {
+            margin-top: 40px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+            transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+        }
+
+        .light-theme .import-section {
+            background-color: #f5f5f5;
+            border: 1px solid #ccc;
+            color: #000000;
+        }
+
+        .import-section h2 {
+            margin-bottom: 15px;
+            color: var(--secondary-color);
+        }
+
+        .light-theme .import-section h2 {
+            color: var(--secondary-color);
+        }
+
+        .import-section input[type="file"] {
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #ffffff;
+            cursor: pointer;
+            transition: border-color var(--transition-speed), background-color var(--transition-speed);
+        }
+
+        .light-theme .import-section input[type="file"] {
+            background-color: #e0e0e0;
+            color: #000000;
+            border: 1px solid #ccc;
+        }
+
+        .import-section input[type="file"]:hover {
+            border-color: var(--secondary-color);
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+
+        .light-theme .import-section input[type="file"]:hover {
+            border-color: var(--secondary-color);
+            background-color: #d5d5d5;
+        }
+
+        .import-section button {
+            margin-top: 15px;
+            background-color: var(--secondary-color);
+        }
+
+        .import-section button:hover {
+            background-color: var(--accent-color);
+        }
+
+        /* Imported Data Table */
+        .imported-data {
+            margin-top: 30px;
+            overflow-x: auto;
+        }
+
+        .imported-data table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .light-theme .imported-data table {
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        .imported-data th, .imported-data td {
+            padding: 12px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            text-align: left;
+        }
+
+        .light-theme .imported-data th, 
+        .light-theme .imported-data td {
+            border: 1px solid #ccc;
+        }
+
+        .imported-data th {
+            background-color: rgba(0, 255, 255, 0.2);
+            color: var(--secondary-color);
+        }
+
+        .light-theme .imported-data th {
+            background-color: rgba(0, 122, 204, 0.1);
+        }
+
+        .imported-data tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .light-theme .imported-data tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .export-buttons {
+                flex-direction: column;
+            }
+
+            .export-buttons button {
+                width: 100%;
+            }
+
+            .imported-data table, .imported-data th, .imported-data td {
+                font-size: 14px;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Accessibility Enhancements */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Theme Toggle Switch -->
+    <div class="theme-toggle">
+        <input type="checkbox" id="themeSwitch" aria-label="Toggle light and dark mode">
+        <label for="themeSwitch">Toggle</label>
+    </div>
+
+    <div class="container">
+        <div class="main-content">
+            <h1>SOL Buddy</h1>
+
+            <form id="solForm" aria-labelledby="formTitle">
+                <div class="form-group">
+                    <label for="state">Select State:</label>
+                    <select id="state" name="state" required aria-required="true">
+                        <option value="">-- Choose a State --</option>
+                        <!-- All 50 states -->
+                        <option value="Alabama">Alabama</option>
+                        <option value="Alaska">Alaska</option>
+                        <option value="Arizona">Arizona</option>
+                        <option value="Arkansas">Arkansas</option>
+                        <option value="California">California</option>
+                        <option value="Colorado">Colorado</option>
+                        <option value="Connecticut">Connecticut</option>
+                        <option value="Delaware">Delaware</option>
+                        <option value="Florida">Florida</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Hawaii">Hawaii</option>
+                        <option value="Idaho">Idaho</option>
+                        <option value="Illinois">Illinois</option>
+                        <option value="Indiana">Indiana</option>
+                        <option value="Iowa">Iowa</option>
+                        <option value="Kansas">Kansas</option>
+                        <option value="Kentucky">Kentucky</option>
+                        <option value="Louisiana">Louisiana</option>
+                        <option value="Maine">Maine</option>
+                        <option value="Maryland">Maryland</option>
+                        <option value="Massachusetts">Massachusetts</option>
+                        <option value="Michigan">Michigan</option>
+                        <option value="Minnesota">Minnesota</option>
+                        <option value="Mississippi">Mississippi</option>
+                        <option value="Missouri">Missouri</option>
+                        <option value="Montana">Montana</option>
+                        <option value="Nebraska">Nebraska</option>
+                        <option value="Nevada">Nevada</option>
+                        <option value="New Hampshire">New Hampshire</option>
+                        <option value="New Jersey">New Jersey</option>
+                        <option value="New Mexico">New Mexico</option>
+                        <option value="New York">New York</option>
+                        <option value="North Carolina">North Carolina</option>
+                        <option value="North Dakota">North Dakota</option>
+                        <option value="Ohio">Ohio</option>
+                        <option value="Oklahoma">Oklahoma</option>
+                        <option value="Oregon">Oregon</option>
+                        <option value="Pennsylvania">Pennsylvania</option>
+                        <option value="Rhode Island">Rhode Island</option>
+                        <option value="South Carolina">South Carolina</option>
+                        <option value="South Dakota">South Dakota</option>
+                        <option value="Tennessee">Tennessee</option>
+                        <option value="Texas">Texas</option>
+                        <option value="Utah">Utah</option>
+                        <option value="Vermont">Vermont</option>
+                        <option value="Virginia">Virginia</option>
+                        <option value="Washington">Washington</option>
+                        <option value="West Virginia">West Virginia</option>
+                        <option value="Wisconsin">Wisconsin</option>
+                        <option value="Wyoming">Wyoming</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="caseType">Select Case Type:</label>
+                    <select id="caseType" name="caseType" required aria-required="true">
+                        <option value="">-- Choose a Case Type --</option>
+                        <!-- Extensive list of case types based on common practice areas -->
+                        <option value="Wrongful Death">Wrongful Death</option>
+                        <option value="Police Misconduct">Police Misconduct</option>
+                        <option value="Personal Injury">Personal Injury</option>
+                        <option value="Medical Malpractice">Medical Malpractice</option>
+                        <option value="Breach of Contract">Breach of Contract</option>
+                        <option value="Property Damage">Property Damage</option>
+                        <option value="Fraud">Fraud</option>
+                        <option value="Employment Discrimination">Employment Discrimination</option>
+                        <option value="Product Liability">Product Liability</option>
+                        <option value="Defamation">Defamation</option>
+                        <option value="Sexual Harassment">Sexual Harassment</option>
+                        <option value="Environmental Damage">Environmental Damage</option>
+                        <option value="Tenant/Landlord Disputes">Tenant/Landlord Disputes</option>
+                        <option value="Consumer Protection">Consumer Protection</option>
+                        <option value="Securities Fraud">Securities Fraud</option>
+                        <!-- Add more case types as needed -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="incidentDate">Date of Incident:</label>
+                    <input type="date" id="incidentDate" name="incidentDate" aria-label="Date of Incident" max="">
+                </div>
+
+                <div class="form-group">
+                    <label for="additionalInfo">Additional Information:</label>
+                    <textarea id="additionalInfo" name="additionalInfo" placeholder="Provide any additional details about your case (optional)" aria-label="Additional Information"></textarea>
+                </div>
+
+                <button type="submit" id="submitBtn"><i class="fas fa-search"></i> Find Statute of Limitations</button>
+            </form>
+
+            <div id="loading" aria-live="polite">
+                <i class="fas fa-spinner fa-spin"></i> Calculating statute of limitations...
+            </div>
+            <div id="result" role="region" aria-live="polite"></div>
+            <div id="errorMessage" role="alert"></div>
+
+            <div class="notes-section">
+                <h2>Notes</h2>
+                <label for="notes" class="sr-only">Your notes</label>
+                <textarea readonly id="notes" placeholder="Your notes will appear here..."></textarea>
+            </div>
+
+            <div class="legal-references">
+                <h2>Legal References</h2>
+                <ul>
+                    <li><a href="https://www.nolo.com/legal-encyclopedia/statute-limitations" target="_blank" rel="noopener noreferrer">Statute of Limitations Overview</a></li>
+                    <li><a href="https://www.law.cornell.edu/wex/statute_of_limitations" target="_blank" rel="noopener noreferrer">Statute of Limitations - Cornell Law</a></li>
+                    <li><a href="https://www.hg.org/statute-of-limitations.html" target="_blank" rel="noopener noreferrer">Statute of Limitations by State</a></li>
+                    <!-- Add more references as needed -->
+                </ul>
+            </div>
+
+            <div class="export-buttons">
+                <button id="exportPDF"><i class="fas fa-file-pdf"></i> Export as PDF</button>
+                <button class="print-btn" id="printPage"><i class="fas fa-print"></i> Print</button>
+            </div>
+
+            <!-- Import Section -->
+            <div class="import-section">
+                <h2>Import Cases</h2>
+                <p>Import a CSV file containing multiple cases. The CSV should have the following headers:</p>
+                <ul>
+                    <li><strong>Case Type</strong></li>
+                    <li><strong>Statute of Limitations (Years)</strong></li>
+                    <li><strong>Contact Info</strong> (optional)</li>
+                </ul>
+                <input type="file" id="importFile" accept=".csv" aria-label="Import CSV File">
+                <button id="importBtn"><i class="fas fa-file-import"></i> Import</button>
+                <div id="importErrorMessage" role="alert" style="margin-top:10px; color: var(--error-color);"></div>
+            </div>
+
+            <!-- Imported Data Table -->
+            <div class="imported-data" id="importedDataSection" style="display:none;">
+                <h2>Imported Cases</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Case Type</th>
+                            <th>Statute of Limitations (Years)</th>
+                            <th>Contact Info</th>
+                        </tr>
+                    </thead>
+                    <tbody id="importedDataTableBody">
+                        <!-- Imported data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Optional Legal Disclaimer -->
+            <div class="legal-disclaimer" style="margin-top:20px; font-size:0.9em; color:#ffffff; text-align:center;">
+                <p><strong>Disclaimer:</strong> This tool provides general information regarding statutes of limitations and is not a substitute for professional legal advice. Please consult with a qualified attorney for advice regarding your specific situation.</p>
+            </div>
+        </div>
+
+        <div class="sidebar" id="caseInfoSidebar" aria-labelledby="sidebarTitle">
+            <h3 id="sidebarTitle">Case Type Information</h3>
+            <p>Select a case type to view relevant information.</p>
+        </div>
+
+        <!-- JavaScript Libraries -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-V3j1PwrhzqNWHRbd1ZxBmIGo5aF0TvF8nJwUXUf4XjCTI/nQwSNobEvqjHFOO3nFdz8RyAhx+BT1u6tAtn0htg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <!-- JavaScript for Theme Toggle and Form Handling -->
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const solForm = document.getElementById('solForm');
+                const loading = document.getElementById('loading');
+                const result = document.getElementById('result');
+                const errorMessage = document.getElementById('errorMessage');
+                const notes = document.getElementById('notes');
+                const submitBtn = document.getElementById('submitBtn');
+                const incidentDateInput = document.getElementById('incidentDate');
+                const caseTypeSelect = document.getElementById('caseType');
+                const sidebar = document.getElementById('caseInfoSidebar');
+
+                // Import Elements
+                const importFileInput = document.getElementById('importFile');
+                const importBtn = document.getElementById('importBtn');
+                const importErrorMessage = document.getElementById('importErrorMessage');
+                const importedDataSection = document.getElementById('importedDataSection');
+                const importedDataTableBody = document.getElementById('importedDataTableBody');
+
+                // Theme Toggle Elements
+                const themeSwitch = document.getElementById('themeSwitch');
+                const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : null;
+
+                if (currentTheme) {
+                    document.documentElement.classList.add(currentTheme);
+
+                    if (currentTheme === 'light-theme') {
+                        themeSwitch.checked = true;
+                    }
+                }
+
+                themeSwitch.addEventListener('change', function() {
+                    if (this.checked) {
+                        document.documentElement.classList.add('light-theme');
+                        localStorage.setItem('theme', 'light-theme');
+                    } else {
+                        document.documentElement.classList.remove('light-theme');
+                        localStorage.setItem('theme', '');
+                    }
+                });
+
+                // Set the max attribute of date input to today to prevent future dates
+                const today = new Date().toISOString().split('T')[0];
+                incidentDateInput.setAttribute('max', today);
+
+                // Statute of Limitations Data (Example)
+                const statuteData = {
+                    "Wrongful Death": { years: 2, description: "Typically 2 years from the date of death." },
+                    "Police Misconduct": { years: 3, description: "Generally 3 years from the date of incident." },
+                    "Personal Injury": { years: 2, description: "Usually 2 years from the date of injury." },
+                    "Medical Malpractice": { years: 3, description: "Often 3 years from the date of malpractice." },
+                    "Breach of Contract": { years: 4, description: "Typically 4 years from the breach." },
+                    "Property Damage": { years: 3, description: "Generally 3 years from the date of damage." },
+                    "Fraud": { years: 3, description: "Usually 3 years from the discovery of fraud." },
+                    "Employment Discrimination": { years: 3, description: "Typically 3 years from the date of discrimination." },
+                    "Product Liability": { years: 2, description: "Generally 2 years from the date of injury caused by the product." },
+                    "Defamation": { years: 1, description: "Usually 1 year from the date of defamatory statement." },
+                    "Sexual Harassment": { years: 3, description: "Typically 3 years from the date of harassment." },
+                    "Environmental Damage": { years: 5, description: "Generally 5 years from the date of damage." },
+                    "Tenant/Landlord Disputes": { years: 3, description: "Usually 3 years from the date of dispute." },
+                    "Consumer Protection": { years: 2, description: "Typically 2 years from the date of violation." },
+                    "Securities Fraud": { years: 3, description: "Generally 3 years from the date of fraud." }
+                    // Add more case types with their respective limitation periods in years
+                };
+
+                // Case Type Information Based on Ben Crump Law Firm's Cases
+                const caseTypeInfo = {
+                    "Wrongful Death": `
+                        <strong>Wrongful Death</strong><br>
+                        The wrongful death statute allows family members to seek compensation when a loved one dies due to negligence or misconduct. <a href="https://www.bencrumplaw.com/cases/wrongful-death" target="_blank" rel="noopener noreferrer">Learn more about our Wrongful Death cases.</a>
+                    `,
+                    "Police Misconduct": `
+                        <strong>Police Misconduct</strong><br>
+                        Cases involving police misconduct encompass excessive force, unlawful detention, and violations of civil rights. The firm is renowned for advocating for victims of police brutality and ensuring accountability within law enforcement agencies. <a href="https://www.bencrumplaw.com/cases/police-misconduct" target="_blank" rel="noopener noreferrer">View our Police Misconduct cases.</a>
+                    `,
+                    "Personal Injury": `
+                        <strong>Personal Injury</strong><br>
+                        Personal injury cases arise from accidents, medical malpractice, or other incidents causing physical or psychological harm. The firm strives to secure just compensation for individuals suffering from injuries due to others' negligence. <a href="https://www.bencrumplaw.com/cases/personal-injury" target="_blank" rel="noopener noreferrer">Explore our Personal Injury cases.</a>
+                    `,
+                    "Medical Malpractice": `
+                        <strong>Medical Malpractice</strong><br>
+                        Medical malpractice involves negligence by healthcare professionals leading to patient harm. Ben Crump Law Firm has a history of holding medical institutions accountable and ensuring victims receive the compensation they deserve. <a href="https://www.bencrumplaw.com/cases/medical-malpractice" target="_blank" rel="noopener noreferrer">Discover our Medical Malpractice cases.</a>
+                    `,
+                    "Breach of Contract": `
+                        <strong>Breach of Contract</strong><br>
+                        When one party fails to fulfill their obligations under a contract, it constitutes a breach. The firm assists clients in enforcing contracts and seeking remedies for losses incurred due to breaches. <a href="https://www.bencrumplaw.com/cases/breach-of-contract" target="_blank" rel="noopener noreferrer">Read about our Breach of Contract cases.</a>
+                    `,
+                    "Property Damage": `
+                        <strong>Property Damage</strong><br>
+                        Property damage cases involve harm to personal or real property due to negligence, accidents, or intentional acts. The firm helps clients recover damages and restore their properties. <a href="https://www.bencrumplaw.com/cases/property-damage" target="_blank" rel="noopener noreferrer">See our Property Damage cases.</a>
+                    `,
+                    "Fraud": `
+                        <strong>Fraud</strong><br>
+                        Fraud cases involve deception to secure unfair or unlawful gain. Ben Crump Law Firm represents victims of various fraudulent activities, ensuring that perpetrators are held accountable. <a href="https://www.bencrumplaw.com/cases/fraud" target="_blank" rel="noopener noreferrer">Investigate our Fraud cases.</a>
+                    `,
+                    "Employment Discrimination": `
+                        <strong>Employment Discrimination</strong><br>
+                        Discrimination in the workplace based on race, gender, age, or other protected characteristics violates civil rights. The firm advocates for employees facing unjust treatment and seeks to rectify discriminatory practices. <a href="https://www.bencrumplaw.com/cases/employment-discrimination" target="_blank" rel="noopener noreferrer">Learn about our Employment Discrimination cases.</a>
+                    `,
+                    "Product Liability": `
+                        <strong>Product Liability</strong><br>
+                        When defective products cause injury or harm, product liability laws hold manufacturers and sellers responsible. The firm assists victims in seeking compensation for damages caused by unsafe products. <a href="https://www.bencrumplaw.com/cases/product-liability" target="_blank" rel="noopener noreferrer">View our Product Liability cases.</a>
+                    `,
+                    "Defamation": `
+                        <strong>Defamation</strong><br>
+                        Defamation involves false statements harming an individual's reputation. The firm defends the rights of those falsely accused and seeks to restore their good standing. <a href="https://www.bencrumplaw.com/cases/defamation" target="_blank" rel="noopener noreferrer">Explore our Defamation cases.</a>
+                    `,
+                    "Sexual Harassment": `
+                        <strong>Sexual Harassment</strong><br>
+                        Sexual harassment in the workplace or other settings violates individual rights and creates hostile environments. The firm supports victims in pursuing justice and securing protective measures. <a href="https://www.bencrumplaw.com/cases/sexual-harassment" target="_blank" rel="noopener noreferrer">Discover our Sexual Harassment cases.</a>
+                    `,
+                    "Environmental Damage": `
+                        <strong>Environmental Damage</strong><br>
+                        Environmental damage cases address harm caused to the environment due to industrial activities or negligence. The firm advocates for communities affected by environmental degradation, seeking remediation and compensation. <a href="https://www.bencrumplaw.com/cases/environmental-damage" target="_blank" rel="noopener noreferrer">Read about our Environmental Damage cases.</a>
+                    `,
+                    "Tenant/Landlord Disputes": `
+                        <strong>Tenant/Landlord Disputes</strong><br>
+                        Disputes between tenants and landlords can involve eviction, maintenance issues, or breach of lease agreements. The firm assists both parties in resolving conflicts and ensuring fair treatment. <a href="https://www.bencrumplaw.com/cases/tenant-landlord-disputes" target="_blank" rel="noopener noreferrer">See our Tenant/Landlord Disputes cases.</a>
+                    `,
+                    "Consumer Protection": `
+                        <strong>Consumer Protection</strong><br>
+                        Consumer protection laws safeguard individuals from unfair business practices. The firm represents consumers seeking remedies for issues like faulty products, deceptive advertising, and unfair contract terms. <a href="https://www.bencrumplaw.com/cases/consumer-protection" target="_blank" rel="noopener noreferrer">Investigate our Consumer Protection cases.</a>
+                    `,
+                    "Securities Fraud": `
+                        <strong>Securities Fraud</strong><br>
+                        Securities fraud involves deceptive practices in the stock or commodities markets, leading to financial losses for investors. The firm pursues justice for victims of such fraudulent activities. <a href="https://www.bencrumplaw.com/cases/securities-fraud" target="_blank" rel="noopener noreferrer">View our Securities Fraud cases.</a>
+                    `
+                    // Add more case types as needed
+                };
+
+                // Event Listener for Form Submission
+                solForm.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+
+                    // Clear previous results and errors
+                    result.innerHTML = '';
+                    errorMessage.innerHTML = '';
+                    notes.value = '';
+
+                    // Disable the submit button to prevent multiple submissions
+                    submitBtn.disabled = true;
+
+                    // Show loading indicator
+                    loading.style.display = 'block';
+
+                    // Gather form data
+                    const state = solForm.state.value.trim();
+                    const caseType = solForm.caseType.value.trim();
+                    const incidentDateValue = solForm.incidentDate.value;
+                    const additionalInfo = solForm.additionalInfo.value.trim();
+
+                    // Input Validation
+                    if (!state || !caseType) {
+                        displayError('Please fill in all required fields.');
+                        return;
+                    }
+
+                    let incidentDate = null;
+                    if (incidentDateValue) {
+                        incidentDate = new Date(incidentDateValue);
+                        if (isNaN(incidentDate)) {
+                            displayError('Please enter a valid date of incident.');
+                            return;
+                        }
+                    }
+
+                    // Simulate API Call or Data Processing
+                    try {
+                        // In a real-world scenario, replace this with an actual API call to fetch accurate data
+                        const limitationInfo = statuteData[caseType];
+
+                        if (!limitationInfo) {
+                            throw new Error('Statute of limitations data not available for the selected case type.');
+                        }
+
+                        const limitationYears = limitationInfo.years;
+                        let limitationDate = null;
+                        let isExpired = false;
+
+                        if (incidentDate) {
+                            limitationDate = new Date(incidentDate);
+                            limitationDate.setFullYear(limitationDate.getFullYear() + limitationYears);
+                            isExpired = new Date() > limitationDate;
+                        }
+
+                        // Construct Result HTML
+                        let resultHTML = `<h2>Statute of Limitations Result</h2>`;
+                        resultHTML += `<p><strong>State:</strong> ${state}</p>`;
+                        resultHTML += `<p><strong>Case Type:</strong> ${caseType}</p>`;
+
+                        if (incidentDate) {
+                            resultHTML += `<p><strong>Date of Incident:</strong> ${incidentDate.toLocaleDateString()}</p>`;
+                            resultHTML += `<p><strong>Statute of Limitations:</strong> ${limitationYears} year(s)</p>`;
+                            resultHTML += `<p><strong>Deadline to File:</strong> ${limitationDate.toLocaleDateString()}</p>`;
+                            resultHTML += `<p><strong>Status:</strong> ${isExpired ? '<span style="color: var(--error-color);"><i class="fas fa-times-circle"></i> Expired</span>' : '<span style="color: var(--accent-color);"><i class="fas fa-check-circle"></i> Active</span>'}</p>`;
+                        } else {
+                            resultHTML += `<p><strong>Statute of Limitations:</strong> ${limitationYears} year(s)</p>`;
+                            resultHTML += `<p><strong>Deadline to File:</strong> ${limitationYears} year(s) from the date of incident.</p>`;
+                            resultHTML += `<p><strong>Status:</strong> Unable to determine without the date of incident.</p>`;
+                        }
+
+                        result.innerHTML = resultHTML;
+
+                        // Populate Notes
+                        notes.value = `
+Case Type: ${caseType}
+State: ${state}
+${incidentDate ? `Incident Date: ${incidentDate.toLocaleDateString()}\n` : ''}
+Statute of Limitations: ${limitationYears} year(s)
+${limitationDate ? `Deadline to File: ${limitationDate.toLocaleDateString()}\n` : ''}
+Status: ${incidentDate ? (isExpired ? 'Expired' : 'Active') : 'N/A'}
+Additional Information: ${additionalInfo || 'N/A'}
+                        `.trim();
+
+                    } catch (error) {
+                        displayError(error.message);
+                    } finally {
+                        // Hide loading indicator and enable submit button
+                        loading.style.display = 'none';
+                        submitBtn.disabled = false;
+                    }
+                });
+
+                // Function to Display Error Messages
+                function displayError(message) {
+                    errorMessage.innerHTML = `<p><i class="fas fa-exclamation-triangle"></i> ${message}</p>`;
+                    loading.style.display = 'none';
+                    submitBtn.disabled = false;
+                }
+
+                // Export to PDF Functionality
+                document.getElementById('exportPDF').addEventListener('click', () => {
+                    if (!result.innerHTML) {
+                        alert('No result to export.');
+                        return;
+                    }
+
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+
+                    doc.setFont("Roboto", "normal");
+                    doc.setFontSize(16);
+                    doc.text("Statute of Limitations Result", 10, 20);
+
+                    doc.setFontSize(12);
+                    const parser = new DOMParser();
+                    const htmlDoc = parser.parseFromString(result.innerHTML, 'text/html');
+                    const paragraphs = htmlDoc.querySelectorAll('p');
+
+                    let yPosition = 30;
+                    paragraphs.forEach(p => {
+                        doc.text(p.textContent, 10, yPosition);
+                        yPosition += 10;
+                    });
+
+                    if (notes.value) {
+                        doc.addPage();
+                        doc.text("Notes", 10, 20);
+                        const noteLines = notes.value.split('\n');
+                        yPosition = 30;
+                        noteLines.forEach(line => {
+                            doc.text(line, 10, yPosition);
+                            yPosition += 10;
+                        });
+                    }
+
+                    doc.save('SOL_Buddy_Result.pdf');
+                });
+
+                // Print Functionality
+                document.getElementById('printPage').addEventListener('click', () => {
+                    if (!result.innerHTML) {
+                        alert('No result to print.');
+                        return;
+                    }
+                    window.print();
+                });
+
+                // Event Listener for Case Type Selection to Populate Sidebar
+                caseTypeSelect.addEventListener('change', () => {
+                    const selectedCaseType = caseTypeSelect.value;
+                    const sidebarContent = caseTypeInfo[selectedCaseType] || `<p>Select a case type to view relevant information.</p>`;
+
+                    if (selectedCaseType) {
+                        sidebar.innerHTML = `<h3 id="sidebarTitle">Case Type Information</h3>${sidebarContent}`;
+                        sidebar.classList.add('active');
+                    } else {
+                        sidebar.innerHTML = `<h3 id="sidebarTitle">Case Type Information</h3><p>Select a case type to view relevant information.</p>`;
+                        sidebar.classList.remove('active');
+                    }
+                });
+
+                // Import Functionality
+                importBtn.addEventListener('click', () => {
+                    const file = importFileInput.files[0];
+                    importErrorMessage.innerHTML = '';
+                    importedDataTableBody.innerHTML = '';
+                    importedDataSection.style.display = 'none';
+
+                    if (!file) {
+                        importErrorMessage.innerHTML = 'Please select a CSV file to import.';
+                        return;
+                    }
+
+                    if (file.type !== 'text/csv') {
+                        importErrorMessage.innerHTML = 'Invalid file format. Please upload a CSV file.';
+                        return;
+                    }
+
+                    // Parse the CSV file using PapaParse
+                    Papa.parse(file, {
+                        header: true,
+                        skipEmptyLines: true,
+                        complete: function(results) {
+                            const data = results.data;
+                            const errors = results.errors;
+
+                            if (errors.length > 0) {
+                                importErrorMessage.innerHTML = 'Error parsing CSV file. Please ensure it is correctly formatted.';
+                                console.error(errors);
+                                return;
+                            }
+
+                            // Validate required headers
+                            const requiredHeaders = ['Case Type', 'Statute of Limitations (Years)', 'Contact Info'];
+                            const headers = results.meta.fields;
+
+                            for (let header of ['Case Type', 'Statute of Limitations (Years)']) {
+                                if (!headers.includes(header)) {
+                                    importErrorMessage.innerHTML = `Missing required header: ${header}`;
+                                    return;
+                                }
+                            }
+
+                            // Populate the table with imported data
+                            data.forEach(row => {
+                                const caseType = row['Case Type'] ? row['Case Type'].trim() : '';
+                                const solYears = row['Statute of Limitations (Years)'] ? row['Statute of Limitations (Years)'].trim() : '';
+                                const contactInfo = row['Contact Info'] ? row['Contact Info'].trim() : 'N/A';
+
+                                // Basic validation
+                                if (!caseType || !solYears || isNaN(solYears)) {
+                                    // Skip invalid rows
+                                    return;
+                                }
+
+                                const tr = document.createElement('tr');
+
+                                const tdCaseType = document.createElement('td');
+                                tdCaseType.textContent = caseType;
+                                tr.appendChild(tdCaseType);
+
+                                const tdSOL = document.createElement('td');
+                                tdSOL.textContent = solYears;
+                                tr.appendChild(tdSOL);
+
+                                const tdContact = document.createElement('td');
+                                tdContact.textContent = contactInfo;
+                                tr.appendChild(tdContact);
+
+                                importedDataTableBody.appendChild(tr);
+                            });
+
+                            // Show the imported data section if there is data
+                            if (importedDataTableBody.children.length > 0) {
+                                importedDataSection.style.display = 'block';
+                            } else {
+                                importErrorMessage.innerHTML = 'No valid data found to import.';
+                            }
+                        },
+                        error: function(err) {
+                            importErrorMessage.innerHTML = 'An error occurred while importing the file.';
+                            console.error(err);
+                        }
+                    });
+                });
+            });
+        </script>
+
+    </body>
+</html>
